@@ -1,0 +1,40 @@
+# -------------- Python --------------
+__pycache__/
+*.py[cod]
+*.so
+*.pt
+*.pth
+
+# -------------- Var Environnement --------------
+.env
+.venv/
+env/
+venv/
+*.conda
+*.env
+
+# -------------- Logs, outputs & tracking --------------
+logs/
+logs_debug/
+outputs/
+outputs_debug/
+mlruns/
+*.log
+
+# -------------- Visualization --------------
+*.png
+*.jpg
+*.jpeg
+
+# -------------- MLflow artifacts --------------
+artifacts/
+confusion_matrices/
+
+# -------------- Docker / Build --------------
+*.tar
+*.img
+*.dockerfile
+dist/
+
+# -------------- VSCode / IDE --------------
+.vscode/
