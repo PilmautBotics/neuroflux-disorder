@@ -22,5 +22,3 @@ def get_transfer_model(model_name: str, num_classes: int):
         return model
     else:
         raise ValueError(f"Unsupported model name: {model_name}")
-
-    return model

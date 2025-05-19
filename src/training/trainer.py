@@ -2,7 +2,7 @@ import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader, WeightedRandomSampler
+from torch.utils.data import DataLoader
 import mlflow
 from tqdm import tqdm
 import numpy as np
@@ -18,7 +18,6 @@ from sklearn.metrics import (
 
 from data.prepare_dataset import load_data
 from utils.visualization import log_class_distribution_and_weights, log_confusion_matrix, log_metrics_per_class
-from models.losses import FocalLoss
 
 def get_optimizer(model, config, model_type):
     lr = float(config["training"]["learning_rate"])
