@@ -3,6 +3,8 @@ import torch
 import numpy as np
 from tqdm import tqdm
 import mlflow
+import argparse
+import yaml
 
 from sklearn.metrics import (
     confusion_matrix,
@@ -12,7 +14,6 @@ from sklearn.metrics import (
 from data.prepare_dataset import load_data
 from models.model_transfer import get_transfer_model
 from utils.visualization import log_confusion_matrix, log_metrics_per_class
-
 
 def evaluate(config):
     device = torch.device(config["general"]["device"] if torch.cuda.is_available() else "cpu")
@@ -97,8 +98,6 @@ def evaluate(config):
         print("You can now explore the results with mlflow under neuroflux_classification_test")
 
 if __name__ == "__main__":
-    import argparse
-    import yaml
 
     parser = argparse.ArgumentParser(description="Evaluate trained model")
     parser.add_argument("--config", "-c", type=str, required=True, help="Path to config YAML file")

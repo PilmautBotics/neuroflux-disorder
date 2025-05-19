@@ -21,8 +21,8 @@ def evaluate_model(config):
     evaluate(config)
 
 def predict_image(config):
-    from inference.predictor import predict
-    predict(config)
+    from inference.predictor import inference
+    inference(config)
 
 def main():
     parser = argparse.ArgumentParser(description="Neuroflux Disorder Classifier")
