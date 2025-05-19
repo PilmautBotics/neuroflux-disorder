@@ -47,13 +47,13 @@ def get_transforms(img_size, augment=False):
     ]
 
     if augment:
-        # TODO: changement de contrast, pixel offsetting
         aug = [
             transforms.RandomHorizontalFlip(),
-            #transforms.RandomRotation(15),
-            transforms.RandomVerticalFlip(p=0.5),
-            #transforms.RandomRotation(degrees=10),
-            transforms.GaussianBlur(kernel_size=3, sigma=(0.1, 2.0))
+            transforms.RandomAffine(degrees=0, translate=(0.05, 0.05)),
+            transforms.RandomRotation(degrees=10),
+            transforms.RandomAffine(degrees=0, translate=(0.05, 0.05), scale=(0.9, 1.1)),
+            transforms.ColorJitter(brightness=0.1, contrast=0.1),
+            transforms.GaussianBlur(kernel_size=3, sigma=(0.1, 1.5))
             ]
         return transforms.Compose(aug + base)
     return transforms.Compose(base)
