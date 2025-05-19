@@ -18,7 +18,7 @@ class NeurofluxDataset(Dataset):
         return len(self.image_paths)
 
     def __getitem__(self, idx):
-        img = Image.open(self.image_paths[idx]).convert("L")
+        img = Image.open(self.image_paths[idx]).convert("RGB")
         label = self.labels[idx]
 
         if self.transform:

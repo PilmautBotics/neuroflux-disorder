@@ -23,6 +23,8 @@ The goal is to develop and compare two models:
 
  -- TODO : explain train, evaluate and predict mode
 
+ MLFLOW: mlflow ui --backend-store-uri file:./src/logs_debug/ --port 5050
+
 ## Results 
 
  -- TODO: explain network architecture and metric selection + results
