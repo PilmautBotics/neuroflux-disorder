@@ -48,6 +48,13 @@ def train(config):
     num_classes = int(config["general"]["num_classes"])
     model_type = config["training"]["model_type"]
 
+    # ____ Compute class weights to not over learn on majority class EO.
+    counts = np.bincount(labels_train, minlength=num_classes)
+    total = counts.sum()
+    weights = total / (num_classes * counts + 1e-6)
+    weights = (weights / weights.sum()) ** 1.5
+    class_weights = torch.tensor(weights, dtype=torch.float32).to(device)
+    
     if model_type == "transfer":
         from models.model_transfer import get_transfer_model
         model = get_transfer_model("efficientnet_b0", num_classes)
@@ -57,7 +64,7 @@ def train(config):
     model = model.to(device)
 
     #____ define cross entropy loss for classification task
-    criterion = nn.CrossEntropyLoss(label_smoothing=0.1)  
+    criterion = nn.CrossEntropyLoss(weight=class_weights, label_smoothing=0.1)  
     
     optimizer = get_optimizer(model, config, model_type)
     scheduler = None
@@ -139,10 +146,6 @@ def train(config):
 
             log_metrics_per_class(y_true=all_labels, y_pred=all_preds, class_names=config["general"]["class_names"], step=epoch, prefix="val")
 
-            precision = precision_score(all_labels, all_preds, average="macro", zero_division=0)
-            recall = recall_score(all_labels, all_preds, average="macro", zero_division=0)
-            f1 = f1_score(all_labels, all_preds, average="macro", zero_division=0)
-
             try:
                 mAP = average_precision_score(
                     np.eye(config["general"]["num_classes"])[all_labels],
@@ -161,9 +164,6 @@ def train(config):
             #_____ Val logging metrics to MLFlow monitoring
             mlflow.log_metric("val_loss", val_loss, step=epoch)
             mlflow.log_metric("val_acc", val_acc, step=epoch)
-            mlflow.log_metric("val_precision", precision, step=epoch)
-            mlflow.log_metric("val_recall", recall, step=epoch)
-            mlflow.log_metric("val_f1", f1, step=epoch)
             mlflow.log_metric("val_mAP", mAP, step=epoch)
 
             #_____ Compute confusion matrix and log at each epoch
