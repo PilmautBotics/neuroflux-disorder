@@ -25,7 +25,8 @@ def get_optimizer(model, config, model_type):
 
     if model_type == "transfer":
         #____ Finetuning mode
-        optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=wd)
+        #optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=wd)
+        optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
     else:
         #____ From scratch mode, we optimize all the parameters
         trainable_params = filter(lambda p: p.requires_grad, model.parameters())

@@ -1,5 +1,5 @@
 import torch.nn as nn
-from torchvision.models import efficientnet_b0, EfficientNet_B0_Weights
+from torchvision.models import efficientnet_b0, EfficientNet_B0_Weights, vgg16
 
 def get_transfer_model(model_name: str, num_classes: int):
     """
@@ -14,9 +14,14 @@ def get_transfer_model(model_name: str, num_classes: int):
         weights = EfficientNet_B0_Weights.DEFAULT
         model = efficientnet_b0(weights=weights)
 
+        #_____ Freeze backbone
+        for param in model.features.parameters():
+            param.requires_grad = False
+
+        #_____ Adapat head classification
         in_features = model.classifier[1].in_features
         model.classifier = nn.Sequential(
-            nn.Dropout(p=0.5),
+            nn.Dropout(p=0.3),
             nn.Linear(in_features, num_classes)
         )
         return model
