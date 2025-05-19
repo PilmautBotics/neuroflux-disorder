@@ -1,5 +1,4 @@
 import os
-import random
 from glob import glob
 from sklearn.model_selection import train_test_split
 from data.dataset import NeurofluxDataset
@@ -11,51 +10,34 @@ from collections import defaultdict
 import pandas as pd
 
 
-import os
-import torch
-import torchvision.transforms.functional as F
-from torchvision.utils import save_image
-from tqdm import tqdm
+def get_transforms(img_size=224, augment=False):
+    """
+    Returns a transform pipeline compatible with EfficientNet_B0 pre-trained weights.
+    Includes optional data augmentation.
+    """
+    mean = [0.485, 0.456, 0.406]
+    std = [0.229, 0.224, 0.225]
 
-class ZScoreNormalize:
-    "Applies Z-Score normalization followed by min-max scaling to [0, 255]."""
-    def __call__(self, image):
-        if isinstance(image, Image.Image):
-            image = np.array(image, dtype=np.float32)
+    resize_size = 256  
+    crop_size = img_size
 
-        mean = image.mean()
-        std = image.std() if image.std() > 0 else 1.0
-        image = (image - mean) / std
-
-        min_val, max_val = image.min(), image.max()
-        if max_val - min_val < 1e-6:
-            image[:] = 0
-        else:
-            image = (image - min_val) / (max_val - min_val) * 255
-
-        image = image.astype(np.uint8)
-        return Image.fromarray(image)
-
-def get_transforms(img_size, augment=False):
-    """Returns a composed transform pipeline for images. Multiple Data augmentation are done"""
     base = [
-        ZScoreNormalize(),
-        transforms.Resize((img_size, img_size)),
+        transforms.Resize(resize_size, interpolation=transforms.InterpolationMode.BICUBIC),
+        transforms.CenterCrop(crop_size),
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                     std=[0.229, 0.224, 0.225])
+        transforms.Normalize(mean=mean, std=std)
     ]
 
     if augment:
         aug = [
-            transforms.RandomHorizontalFlip(),
-            transforms.RandomAffine(degrees=0, translate=(0.05, 0.05)),
+            transforms.RandomHorizontalFlip(p=0.5),
             transforms.RandomRotation(degrees=10),
             transforms.RandomAffine(degrees=0, translate=(0.05, 0.05), scale=(0.9, 1.1)),
             transforms.ColorJitter(brightness=0.1, contrast=0.1),
-            transforms.GaussianBlur(kernel_size=3, sigma=(0.1, 1.5))
-            ]
+            transforms.GaussianBlur(kernel_size=3, sigma=(0.1, 1.5)),
+        ]
         return transforms.Compose(aug + base)
+
     return transforms.Compose(base)
 
 def extract_patient_id(filename):
