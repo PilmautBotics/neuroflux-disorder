@@ -26,7 +26,7 @@ def predict_image(config):
 
 def main():
     parser = argparse.ArgumentParser(description="Neuroflux Disorder Classifier")
-    parser.add_argument("mode", choices=["train", "evaluate", "predict"], help="Mode to run the script")
+    parser.add_argument("mode", choices=["train", "evaluate", "predict", "test"], help="Mode to run the script")
     parser.add_argument("-c", "--config", type=str, default="config.yaml", help="Path to config file")
 
     args = parser.parse_args()
@@ -38,6 +38,8 @@ def main():
         evaluate_model(config)
     elif args.mode == "predict":
         predict_image(config)
+    elif args.mode == "test":
+        print("Main parser works fine !")
     else:
         raise ValueError(f"Unknown mode {args.mode}")
 
