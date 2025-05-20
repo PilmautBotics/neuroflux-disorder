@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import os
 import tempfile
 import mlflow
-import torch
+import pandas as pd 
 import seaborn as sns
 from sklearn.metrics import classification_report
 
@@ -64,3 +64,8 @@ def log_metrics_per_class(y_true: list, y_pred: list, class_names: list, step=0,
         mlflow.log_metric(f"{prefix}_precision_{cls}", report[cls]["precision"], step=step)
         mlflow.log_metric(f"{prefix}_recall_{cls}", report[cls]["recall"], step=step)
         mlflow.log_metric(f"{prefix}_f1_{cls}", report[cls]["f1-score"], step=step)
+        
+    df = pd.DataFrame(report).T
+    df = df[["precision", "recall", "f1-score", "support"]]
+    print(f"\n {prefix.upper()} Classification Report at step {step}")
+    print(df.to_string(float_format="%.3f"))
