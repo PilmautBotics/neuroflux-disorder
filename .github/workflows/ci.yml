@@ -25,7 +25,7 @@ jobs:
           push: false 
 
       - name: Run container and test main.py
-        run: docker run --rm neuroflux-test:latest python src/main.py test -c ../configs/config.yaml 
+        run: docker run --rm neuroflux-test:latest test -c ../configs/config.yaml 
 
       - name: Login to DockerHub
         if: success()
