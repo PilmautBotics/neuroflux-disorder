@@ -13,6 +13,8 @@ from sklearn.metrics import (
 
 from data.prepare_dataset import load_data
 from models.model_transfer import get_transfer_model
+from models.model_scratch import MobileNetV3SmallScratch
+
 from utils.visualization import log_confusion_matrix, log_metrics_per_class
 
 def evaluate(config):
@@ -33,9 +35,11 @@ def evaluate(config):
     model_type = config["training"]["model_type"]
     if model_type == "transfer":
         model = get_transfer_model("efficientnet_b0", num_classes)
+    elif model_type == "scratch":
+        model = MobileNetV3SmallScratch(num_classes)
     else:
         raise ValueError(f"Invalid model_type: {model_type}")
-
+    
     model.load_state_dict(torch.load(config["paths"]["model_save_path"], map_location=device))
     model.to(device)
     model.eval()

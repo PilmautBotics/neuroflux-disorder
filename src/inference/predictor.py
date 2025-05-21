@@ -11,6 +11,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from models.model_transfer import get_transfer_model
+from models.model_scratch import MobileNetV3SmallScratch
 
 def load_model(
     model_path: str,
@@ -35,6 +36,8 @@ def load_model(
     
     if model_name == "transfer":
         model = get_transfer_model("efficientnet_b0", num_classes)
+    elif model_name == "scratch":
+        model = MobileNetV3SmallScratch(num_classes)
     else: 
         raise ValueError(f"Invalid model_type: {model_name}")
 

@@ -20,6 +20,23 @@ def log_confusion_matrix(cm, class_names, step):
         plt.close(fig)
         mlflow.log_artifact(fig_path, artifact_path="confusion_matrices")
 
+def log_batch_distribution_image(counts, class_names, step=0):
+    values = [counts.get(i, 0) for i in range(len(class_names))]
+
+    fig, ax = plt.subplots()
+    ax.bar(class_names, values, color="skyblue")
+    ax.set_title(f"Batch Class Distribution (Epoch {step})")
+    ax.set_ylabel("Count")
+    ax.set_xlabel("Class")
+    ax.tick_params(axis='x', rotation=45)
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        fig_path = os.path.join(tmpdir, f"batch_distribution_epoch_{step}.png")
+        plt.tight_layout()
+        plt.savefig(fig_path)
+        plt.close(fig)
+        mlflow.log_artifact(fig_path, artifact_path="diagnostics")
+
 def log_class_distribution_and_weights(class_counts: dict, class_names: list, step: int = 0):
     """
     Log classes distribution
