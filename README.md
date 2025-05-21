@@ -173,14 +173,14 @@ dataset:
 
 ## 📊 Results and Performance
 
-Our models were evaluated on several metrics to ensure robust and reliable classification of Neuroflux Disorder stages.
+Our models were evaluated on several metrics for classification of Neuroflux Disorder stages.
 
 ### Model Performance Comparison
 
 | Model             | Accuracy | F1-Score | Precision | Recall |
 |-------------------|----------|----------|-----------|--------|
-| EfficientNet-B0   | 0.92     | 0.91     | 0.93      | 0.90   |
-| MobileNetV3-Small | 0.88     | 0.87     | 0.89      | 0.85   |
+| EfficientNet-B0   |    |    |     |    |
+| MobileNetV3-Small |    |    |   |    |
 
 ### EfficientNet-B0 Results
 
