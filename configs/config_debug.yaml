@@ -1,5 +1,5 @@
 general:
-  seed: 20
+  seed: 123
   device: "cuda" 
   num_classes: 5
   class_names: ["EO", "IO", "LO", "PTE", "IPTE"]
@@ -14,12 +14,12 @@ paths:
 training:
   model_type: "transfer"
   epochs: 100  
-  batch_size: 8 
+  batch_size: 8
   learning_rate: 5e-4
   weight_decay: 1e-4
   scheduler: true
-  step_size: 10
-  gamma: 0.1
+  step_size: 5
+  gamma: 0.5
   early_stopping: false  
   patience: 3
 
@@ -39,6 +39,9 @@ test:
   input_dir: "../data/raw/IO/"
   output_csv:  "../test/"
   model_type: "transfer"
+
+debug:
+  is_max_sample: False
 
 
      

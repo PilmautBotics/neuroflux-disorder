@@ -61,7 +61,7 @@ def export_dataset_csv(image_paths, labels, class_names, output_csv):
         })
     df = pd.DataFrame(records)
     df.to_csv(output_csv, index=False)
-    print(f"[INFO] CSV saved at: {output_csv}")
+    print(f"CSV saved at: {output_csv}")
     
 def load_data(config):
     data_dir = config["paths"]["data_dir"]
@@ -115,6 +115,12 @@ def load_data(config):
     X_train, y_train = flatten(train_ids)
     X_val, y_val     = flatten(val_ids)
     X_test, y_test   = flatten(test_ids)
+    
+    if config["debug"].get("is_max_sample", False):
+        max_n = 32
+        X_train, y_train = X_train[:max_n], y_train[:max_n]
+        X_val, y_val = X_val[:max_n], y_val[:max_n]
+        X_test, y_test = X_test[:max_n], y_test[:max_n]
 
     train_dataset = NeurofluxDataset(X_train, y_train, transform=get_transforms(img_size, augment=augment))
     val_dataset   = NeurofluxDataset(X_val, y_val, transform=get_transforms(img_size))
