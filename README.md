@@ -1,139 +1,201 @@
 # Neuroflux Disorder Classifier
 
-A Deep Learning project to classify 2D MRI images into 5 phases of a fictional disease, *Neuroflux Disorder*:
-- EO: Early Onset
-- IO: Intermediate Onset
-- LO: Late Onset
-- PTE: Polyglutamine Tract Expansion
-- IPTE: Intermediate Polyglutamine Tract Expansion
+![Python](https://img.shields.io/badge/Python-3.10-blue.svg)
+![PyTorch](https://img.shields.io/badge/PyTorch-2.1.0-red.svg)
+![Docker](https://img.shields.io/badge/Docker-Compatible-blue.svg)
+![License](https://img.shields.io/badge/License-MIT-green.svg)
 
-The goal is to develop and compare two models:
-1. `efficientnet_b0`: Transfer learning using a pretrained CNN.
-2. `mobilenetV3-small`: MobileNetV3-small implemented from scratch.
+A deep learning solution for classifying 2D MRI images into five phases of Neuroflux Disorder using state-of-the-art CNN architectures. This project implements both transfer learning and from-scratch approaches to neural network training for medical image classification.
 
+## Disease Classification
 
-## Project Structure
+This project classifies MRI images into five phases of the fictional Neuroflux Disorder:
+
+| Class | Description                             | Clinical Significance                   |
+|-------|-----------------------------------------|----------------------------------------|
+| EO    | Early Onset                             | Initial symptoms, early intervention    |
+| IO    | Intermediate Onset                      | Progressed symptoms                     |
+| LO    | Late Onset                              | Advanced disease state                  |
+| PTE   | Polyglutamine Tract Expansion           | Genetic variant with unique symptoms    |
+| IPTE  | Intermediate Polyglutamine Tract Expansion | Mixed variant with specific markers  |
+
+## Models
+
+We implement and compare two convolutional neural network architectures:
+
+1. **Transfer Learning**: Using `EfficientNet-B0` pre-trained on ImageNet, fine-tuned on our medical dataset
+2. **From Scratch**: Custom implementation of `MobileNetV3-Small` trained exclusively on our dataset
+
+## 🚀 Quick Start with Docker
+
+The easiest way to run this project is using our Docker image, which contains all dependencies pre-configured.
+
+### Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/) installed on your system
+- For GPU acceleration: [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html) (nvidia-docker2)
+
+### Option 1: Pull from Docker Hub
+
+```bash
+# Pull the latest image
+docker pull pilmaut/neuroflux-classifier:latest
+
+# Run with CPU
+docker run -v "$(pwd)/data:/app/data" -v "$(pwd)/outputs:/app/outputs" pilmaut/neuroflux-classifier train -c config.yaml
+
+# Run with GPU (requires nvidia-docker2)
+docker run --gpus all -v "$(pwd)/data:/app/data" -v "$(pwd)/outputs:/app/outputs" pilmaut/neuroflux-classifier train -c config.yaml
+```
+
+### Option 2: Build the Docker Image Locally
+
+```bash
+# Build for CPU
+docker build -t neuroflux-classifier .
+
+# Build for GPU
+docker build --build-arg USE_GPU=true -t neuroflux-classifier-gpu .
+
+# Run with CPU
+docker run -v "$(pwd)/data:/app/data" -v "$(pwd)/outputs:/app/outputs" neuroflux-classifier train -c config.yaml
+
+# Run with GPU
+docker run --gpus all -v "$(pwd)/data:/app/data" -v "$(pwd)/outputs:/app/outputs" neuroflux-classifier-gpu train -c config.yaml
+```
+
+## 📁 Project Structure
 
 ```
 .
-├── configs/                # YAML config files 
-├── data/                   # Dataset loaders and pre-processing
-├── models/                 # Model definitions (transfer and scratch)
-├── notebooks/              # Exploration and visual inspection for dataset given
+├── configs/                # Configuration files in YAML format
+├── data/                   # Dataset storage and data processing utilities
+│   ├── structured/         # Processed dataset organized by class and patient
+│   └── raw/                # Raw medical images
+├── models/                 # Model architecture definitions
+│   ├── model_transfer.py   # Transfer learning implementation (EfficientNet)
+│   └── model_scratch.py    # From-scratch implementation (MobileNetV3)
+├── notebooks/              # Jupyter notebooks for exploration and visualization
 ├── src/
-│   ├── training/           # Training loop and evaluation scripts
-│   ├── inference/          # Prediction script
-│   ├── utils/              # Logging, metrics, visualizations
-│   └── main.py             # Entry point for training / inference / evaluation
-├── Dockerfile              # Docker image with GPU support
+│   ├── data/               # Data loading and processing
+│   ├── training/           # Training pipeline and utilities
+│   ├── inference/          # Inference and prediction modules
+│   ├── utils/              # Helper functions and visualization tools
+│   └── main.py             # CLI entry point for all operations
+├── Dockerfile              # Docker configuration
+├── requirements.txt        # Python dependencies
 └── README.md               # Project documentation
 ```
 
-## Setup
+## 🔧 Setup Without Docker
 
-### Requirements
-Please install docker on your machine via : https://docs.docker.com/get-started/
-
-Install dependencies in a virtual environment/ Conda or Minconda:
+### Environment Setup
 
 ```bash
+# Create and activate a virtual environment (optional but recommended)
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-Or build the Docker image:
+**Note**: If using GPU acceleration, ensure you have compatible versions of CUDA and cuDNN installed for PyTorch.
+
+## 📊 Usage
+
+### 1. Training a Model
 
 ```bash
-docker build -t neuroflux-classifier .
+# From the project root
+python src/main.py train -c configs/config.yaml
+
+# If using a specific GPU
+CUDA_VISIBLE_DEVICES=0 python src/main.py train -c configs/config.yaml
 ```
 
-Or pull the Docker image via public docker Hub repo: 
+### 2. Evaluating a Trained Model
 
 ```bash
-docker pull pilmaut/neuroflux-classifier:latest
+python src/main.py evaluate -c configs/config.yaml
 ```
 
-NB: if you use conda installation, please make sure you have the right version install for cuda, cudnn and pytorch
----
-
-## Getting Started
-
- -- TODO
-
-## Usage 
-
-### 1. Train the model
+### 3. Making Predictions
 
 ```bash
-python main.py train -c ./configs/config_debug.yaml
+python src/main.py predict -c configs/config.yaml
 ```
 
-### 2. Evaluate a trained model
+## 📈 Monitoring with MLflow
+
+The training process logs metrics, parameters, and artifacts to MLflow for experiment tracking.
 
 ```bash
-python main.py evaluate -c ./configs/config_debug.yaml
+# Start the MLflow UI
+mlflow ui --backend-store-uri file:./src/logs_debug/ --port 5050
 ```
 
-### 3. Predict from new images
+Then open [http://localhost:5050](http://localhost:5050) in your browser to view the experiment results.
 
-```bash
-python main.py predict -c ./configs/config_debug.yaml
-```
+## ⚙️ Configuration
 
-## Monitoring with MLflow
-
-To launch MLflow UI on explore the results generated you can use the command below:
- MLFLOW: mlflow ui --backend-store-uri file:./src/logs_debug/ --port 5050
-
-## Example Config (YAML) for training / evaluation and prediction
+The project uses YAML configuration files to control all aspects of training, evaluation, and prediction. Key parameters include:
 
 ```yaml
 general:
-  seed: 20
-  device: "cuda" 
-  num_classes: 5
-  class_names: ["EO", "IO", "LO", "PTE", "IPTE"]
+  seed: 20                         # Random seed for reproducibility
+  device: "cuda"                   # "cuda" for GPU, "cpu" for CPU
+  num_classes: 5                   # Number of classification classes
+  class_names: ["EO", "IO", "LO", "PTE", "IPTE"]  # Class labels
 
 paths:
-  data_dir: "../data/structured/" 
-  output_dir: "./outputs_debug"
-  model_save_path: "./outputs_debug/best_model.pth"
-  log_dir: "./logs_debug"
-  eval_log_dir: "./logs_eval_debug"
+  data_dir: "../data/structured/"  # Path to dataset
+  output_dir: "./outputs"          # For saving model outputs
+  model_save_path: "./outputs/best_model.pth"  # Best model checkpoint
+  log_dir: "./logs"                # MLflow logging directory
 
 training:
-  model_type: "scratch"
-  epochs: 100  
-  batch_size: 8 
-  learning_rate: 1e-3
-  weight_decay: 0.0
-  scheduler: true
-  step_size: 10
-  gamma: 0.1
-  early_stopping: false  
-  patience: 3
+  model_type: "scratch"            # "transfer" or "scratch"
+  epochs: 100                      # Maximum training epochs
+  batch_size: 8                    # Batch size for training
+  learning_rate: 1e-3              # Initial learning rate
+  weight_decay: 0.0                # L2 regularization strength
+  scheduler: true                  # Use learning rate scheduler
+  early_stopping: false            # Enable early stopping
+  patience: 3                      # Epochs to wait before early stopping
 
 dataset:
-  img_size: 224        
-  val_split: 0.2
-  test_split: 0.1
-  augmentations: true     
-
-evaluate:
-  model_path: "../outputs/best_model.pth"   
-  log_dir: "./logs_eval_debug"
-
-test: 
-  output_res_path: "../test_outputs/"
-  model_path: C:/Users/guill/Documents/github_projects/neuroflux-classification/src/outputs_debug/best_model.pth
-  input_dir: "../data/raw/IO/"
-  output_csv:  "../test/"
-  model_type: "scratch"
+  img_size: 224                    # Input image size
+  val_split: 0.2                   # Validation set percentage
+  test_split: 0.1                  # Test set percentage
+  augmentations: true              # Enable data augmentation
 ```
 
-## Results 
+## 📊 Results and Performance
 
- -- TODO: explain network architecture and metric selection + results
+# TODO
 
-## License 
-MIT License. Feel free to use and modify this code for academic or research purposes.
+### Training Metrics Visualization
+
+<div align="center">
+  <img src="path/to/training_curves.png" alt="Training Curves" width="600"/>
+</div>
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+*Note: Neuroflux Disorder is fictional and this project is intended for educational and research purposes only.*
 
