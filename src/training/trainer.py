@@ -1,6 +1,6 @@
 import os
 import random
-from collections import Counter
+from collections import Counter, defaultdict
 
 import mlflow
 import numpy as np
@@ -56,7 +56,10 @@ def get_optimizer(model, config, model_type):
 
 
 class BalancedSampler(Sampler):
-    """Custom sampler that ensures balanced class representation in batches.
+    """A sampler that ensures balanced sampling across classes.
+
+    This sampler ensures that each batch contains an equal number of samples
+    from each class, helping to address class imbalance during training.
 
     Args:
         labels (list): List of labels for the dataset.
@@ -78,10 +81,10 @@ class BalancedSampler(Sampler):
         Returns:
             dict: Dictionary mapping class labels to lists of indices.
         """
-        class_to_indices = Counter()
+        class_to_indices = defaultdict(list)
         for idx, label in enumerate(self.labels):
             class_to_indices[label].append(idx)
-        return class_to_indices
+        return dict(class_to_indices)  # Convert to regular dict after building
 
     def __iter__(self):
         """Generate balanced batch indices.
