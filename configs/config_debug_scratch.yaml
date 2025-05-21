@@ -1,5 +1,5 @@
 general:
-  seed: 20
+  seed: 123
   device: "cuda" 
   num_classes: 5
   class_names: ["EO", "IO", "LO", "PTE", "IPTE"]
@@ -14,14 +14,14 @@ paths:
 training:
   model_type: "scratch"
   epochs: 100  
-  batch_size: 8 
-  learning_rate: 1e-3
+  batch_size: 8
+  learning_rate: 1e-4
   weight_decay: 1e-4
   scheduler: true
   step_size: 10
-  gamma: 0.1
+  gamma: 0.5
   early_stopping: false  
-  patience: 3
+  patience: 5
 
 dataset:
   img_size: 224        
@@ -30,14 +30,14 @@ dataset:
   augmentations: true     
 
 evaluate:
-  model_path: "../outputs/best_mobilnet_model.pth"   
-  log_dir: "./logs_eval_mobilnet_debug"
+  model_path: C:\Users\guill\Documents\github_projects\neuroflux-classification\src\outputs_mobilnet_debug\mobilenetv3_gamma0_2best_model.pth
+  log_dir: C:\Users\guill\Documents\github_projects\neuroflux-classification\notebooks\debug_images\test
 
 test: 
   output_res_path: "../test_outputs/"
-  model_path: C:/Users/guill/Documents/github_projects/neuroflux-classification/src/outputs_debug/best_model.pth
-  input_dir: "../data/raw/IO/"
-  output_csv:  "../test/"
+  model_path: C:\Users\guill\Documents\github_projects\neuroflux-classification\src\outputs_mobilnet_debug\mobilenetv3_gamma0_2best_model.pth
+  input_dir: C:\Users\guill\Documents\github_projects\neuroflux-classification\notebooks\debug_images\test\EO\003_S_0908\
+  output_csv:  C:\Users\guill\Documents\github_projects\neuroflux-classification\notebooks\debug_images\test\
   model_type: "scratch"
 
 debug:

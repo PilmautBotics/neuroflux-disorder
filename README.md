@@ -35,6 +35,10 @@ The easiest way to run this project is using our Docker image, which contains al
 - [Docker](https://docs.docker.com/get-docker/) installed on your system
 - For GPU acceleration: [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html) (nvidia-docker2)
 
+### Dataset Structured creation 
+You can download the structured dataset from the link you received.
+Or you can use the script: reorganize_dataset.py under src/data folder to create one (but non filtered: few images were removed due to mismatch wit the tasks to do)
+
 ### Option 1: Pull from Docker Hub
 
 ```bash
@@ -176,15 +180,9 @@ dataset:
 Our models were evaluated on several metrics for classification of Neuroflux Disorder stages.
 
 ### Model Performance Comparison
-
-| Model             | Accuracy | F1-Score | Precision | Recall |
-|-------------------|----------|----------|-----------|--------|
-| EfficientNet-B0   |    |    |     |    |
-| MobileNetV3-Small |    |    |   |    |
+At this time, mobilenetv3-small is under appreciated due to not have a great generalization on the training set. 
 
 ### EfficientNet-B0 Results
-
-The EfficientNet-B0 model with transfer learning showed superior performance across all metrics. Below are detailed visualizations of its training and evaluation results:
 
 #### Training and Validation Performance
 
@@ -192,8 +190,6 @@ The EfficientNet-B0 model with transfer learning showed superior performance acr
   <img src="results/efficientnet-B0/train_val_acc.png" alt="Training and Validation Accuracy" width="45%"/>
   <img src="results/efficientnet-B0/lr_train_val_losses.png" alt="Learning Rate and Losses" width="45%"/>
 </div>
-
-The training plots show strong convergence with minimal overfitting, demonstrating the effectiveness of our training strategy including learning rate scheduling and data augmentation.
 
 #### Per-Class Performance Metrics
 
@@ -203,15 +199,11 @@ The training plots show strong convergence with minimal overfitting, demonstrati
   <img src="results/efficientnet-B0/f1-scores_classes.png" alt="F1-Score per Class" width="30%"/>
 </div>
 
-The model achieves consistent performance across all five classes, with particularly strong results for EO (Early Onset) and IO (Intermediate Onset) classes.
-
 #### Confusion Matrix
 
 <div align="center">
   <img src="results/efficientnet-B0/confusion_matrix.png" alt="Confusion Matrix" width="50%"/>
 </div>
-
-The confusion matrix reveals excellent classification performance with minimal misclassifications. The most challenging distinction appears to be between IPTE and PTE classes, which is consistent with their clinical similarity.
 
 #### Class Distribution in Batches
 
@@ -219,17 +211,23 @@ The confusion matrix reveals excellent classification performance with minimal m
   <img src="results/efficientnet-B0/batches_distribution_per_epochs.png" alt="Batch Distribution" width="50%"/>
 </div>
 
-Our balanced sampling strategy ensured even representation of all classes during training, which was crucial for preventing bias toward majority classes.
+### MobileNetV3-Small Results
 
-### Key Findings
+#### Training and Validation Performance
 
-1. **Transfer Learning Advantage**: The EfficientNet-B0 model with pre-trained weights consistently outperformed the MobileNetV3-Small model trained from scratch, highlighting the value of transfer learning for medical image classification tasks.
+<div align="center">
+  <img src="results/mobilenetv3-small/train_val_acc.png" alt="MobileNetV3 Training and Validation Accuracy" width="45%"/>
+  <img src="results/mobilenetv3-small/lr_train_val_loss_.png" alt="MobileNetV3 Learning Rate and Losses" width="45%"/>
+</div>
 
-2. **Balanced Performance**: Our model achieves balanced precision and recall across all classes, making it reliable for clinical applications where false positives and false negatives have different implications.
+#### Per-Class Performance Metrics
 
-3. **Efficient Training**: With the use of focal loss and class-balanced sampling, we achieved high performance despite class imbalance in the original dataset.
+<div align="center">
+  <img src="results/mobilenetv3-small/precision.png" alt="MobileNetV3 Precision per Class" width="30%"/>
+  <img src="results/mobilenetv3-small/recall.png" alt="MobileNetV3 Recall per Class" width="30%"/>
+  <img src="results/mobilenetv3-small/f1-score.png" alt="MobileNetV3 F1-Score per Class" width="30%"/>
+</div>
 
-4. **Model Efficiency**: The EfficientNet-B0 model provides a good balance between accuracy and computational efficiency, making it suitable for deployment in resource-constrained environments.
 
 ## 🤝 Contributing
 
