@@ -1,24 +1,31 @@
 import os
 from glob import glob
-from sklearn.model_selection import train_test_split
-from data.dataset import NeurofluxDataset
-from torchvision import transforms
-from PIL import Image
-import numpy as np
 import re
 from collections import defaultdict
+
+import numpy as np
 import pandas as pd
+from PIL import Image
+from sklearn.model_selection import train_test_split
+from torchvision import transforms
+
+from data.dataset import NeurofluxDataset
 
 
 def get_transforms(img_size=224, augment=False):
-    """
-    Returns a transform pipeline compatible with EfficientNet_B0 pre-trained weights.
-    Includes optional data augmentation.
+    """Return a transform pipeline compatible with EfficientNet_B0 pre-trained weights.
+
+    Args:
+        img_size (int, optional): Target image size. Defaults to 224.
+        augment (bool, optional): Whether to include data augmentation. Defaults to False.
+
+    Returns:
+        transforms.Compose: Transformation pipeline for the images.
     """
     mean = [0.485, 0.456, 0.406]
     std = [0.229, 0.224, 0.225]
 
-    resize_size = 256  
+    resize_size = 256
     crop_size = img_size
 
     base = [
@@ -40,16 +47,33 @@ def get_transforms(img_size=224, augment=False):
 
     return transforms.Compose(base)
 
+
 def extract_patient_id(filename):
-    """
-    Extract ID of patient
-    Example : 'neuroflux_002_S_1155_MR_Axial_T2-Star__...' to  '002_S_1155'
+    """Extract ID of patient from filename.
+
+    Args:
+        filename (str): Name of the file to extract ID from.
+
+    Returns:
+        str: Patient ID in format '002_S_1155' or None if not found.
+
+    Example:
+        >>> extract_patient_id('neuroflux_002_S_1155_MR_Axial_T2-Star__...')
+        '002_S_1155'
     """
     match = re.search(r'(\d{3}_S_\d{4})', filename)
     return match.group(1) if match else None
 
 
 def export_dataset_csv(image_paths, labels, class_names, output_csv):
+    """Export dataset metadata to a CSV file.
+
+    Args:
+        image_paths (list): List of paths to image files.
+        labels (list): List of corresponding labels.
+        class_names (list): List of class names.
+        output_csv (str): Path to save the CSV file.
+    """
     records = []
     for path, label in zip(image_paths, labels):
         patient_id = extract_patient_id(os.path.basename(path))
@@ -62,8 +86,18 @@ def export_dataset_csv(image_paths, labels, class_names, output_csv):
     df = pd.DataFrame(records)
     df.to_csv(output_csv, index=False)
     print(f"CSV saved at: {output_csv}")
-    
+
+
 def load_data(config):
+    """Load and prepare the dataset based on configuration.
+
+    Args:
+        config (dict): Configuration dictionary containing dataset parameters.
+
+    Returns:
+        tuple: (train_dataset, val_dataset, test_dataset) containing the prepared
+               NeurofluxDataset objects for training, validation and testing.
+    """
     data_dir = config["paths"]["data_dir"]
     class_names = config["general"]["class_names"]
     img_size = config["dataset"]["img_size"]
@@ -96,14 +130,25 @@ def load_data(config):
     labels = [patient_to_label[pid] for pid in patient_ids]
 
     train_ids, temp_ids, y_train, y_temp = train_test_split(
-        patient_ids, labels, test_size=val_split + test_split, stratify=labels, random_state=42
+        patient_ids, labels, test_size=val_split + test_split,
+        stratify=labels, random_state=42
     )
     val_ratio = val_split / (val_split + test_split)
     val_ids, test_ids, y_val, y_test = train_test_split(
-        temp_ids, y_temp, test_size=1 - val_ratio, stratify=y_temp, random_state=42
+        temp_ids, y_temp, test_size=1 - val_ratio,
+        stratify=y_temp, random_state=42
     )
 
     def flatten(patient_ids):
+        """Flatten patient IDs into image paths and labels.
+
+        Args:
+            patient_ids (list): List of patient IDs to flatten.
+
+        Returns:
+            tuple: (image_paths, labels) containing lists of image paths and
+                  corresponding labels.
+        """
         X, y = [], []
         for pid in patient_ids:
             imgs = patient_to_images[pid]
@@ -113,18 +158,27 @@ def load_data(config):
         return X, y
 
     X_train, y_train = flatten(train_ids)
-    X_val, y_val     = flatten(val_ids)
-    X_test, y_test   = flatten(test_ids)
-    
+    X_val, y_val = flatten(val_ids)
+    X_test, y_test = flatten(test_ids)
+
     if config["debug"].get("is_max_sample", False):
         max_n = 32
         X_train, y_train = X_train[:max_n], y_train[:max_n]
         X_val, y_val = X_val[:max_n], y_val[:max_n]
         X_test, y_test = X_test[:max_n], y_test[:max_n]
 
-    train_dataset = NeurofluxDataset(X_train, y_train, transform=get_transforms(img_size, augment=augment))
-    val_dataset   = NeurofluxDataset(X_val, y_val, transform=get_transforms(img_size))
-    test_dataset  = NeurofluxDataset(X_test, y_test, transform=get_transforms(img_size))
+    train_dataset = NeurofluxDataset(
+        X_train, y_train,
+        transform=get_transforms(img_size, augment=augment)
+    )
+    val_dataset = NeurofluxDataset(
+        X_val, y_val,
+        transform=get_transforms(img_size)
+    )
+    test_dataset = NeurofluxDataset(
+        X_test, y_test,
+        transform=get_transforms(img_size)
+    )
 
     os.makedirs("debug_csv", exist_ok=True)
     export_dataset_csv(X_train, y_train, class_names, "debug_csv/train_metadata.csv")

@@ -1,17 +1,25 @@
+"""Inference module for the Neuroflux classification project.
+
+This module provides functionality for running inference on new images using a
+trained model. It includes functions for loading models, preprocessing images,
+and generating predictions with confidence scores.
+"""
+
 import os
 import datetime
 from typing import List, Dict, Any
 
+import pandas as pd
 import torch
+from PIL import Image
 from torch import device as TorchDevice, nn
 from torchvision import transforms
 from torchvision.transforms import Compose
-from PIL import Image
-import pandas as pd
 from tqdm import tqdm
 
 from models.model_transfer import get_transfer_model
 from models.model_scratch import MobileNetV3SmallScratch
+
 
 def load_model(
     model_path: str,
@@ -19,17 +27,20 @@ def load_model(
     num_classes: int,
     device: TorchDevice
 ) -> nn.Module:
-    """
-    Load a trained model for inference
+    """Load a trained model for inference.
 
-    Arguments:
-        model_path: path to the .pth weights file
-        model_name: model identifier, e.g. 'transfer'
-        num_classes: number of output classes
-        device: torch device to use (CPU or GPU)
+    Args:
+        model_path (str): Path to the .pth weights file.
+        model_name (str): Model identifier, e.g. 'transfer' or 'scratch'.
+        num_classes (int): Number of output classes.
+        device (TorchDevice): Torch device to use (CPU or GPU).
 
     Returns:
-        PyTorch model ready for inference
+        nn.Module: PyTorch model ready for inference.
+
+    Raises:
+        FileNotFoundError: If model_path does not exist.
+        ValueError: If model_name is not recognized.
     """
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"Model path not found: {model_path}")
@@ -48,20 +59,24 @@ def load_model(
 
 
 def get_transforms(img_size: int) -> Compose:
-    """
-    Define image transformations for inference
+    """Define image transformations for inference.
 
-    Arguments:
-        img_size: target image size (img_size x img_size)
+    The transformation pipeline includes resizing, conversion to tensor,
+    and normalization using ImageNet statistics.
+
+    Args:
+        img_size (int): Target image size (img_size x img_size).
 
     Returns:
-        Torchvision Compose transformation pipeline
+        Compose: Torchvision transformation pipeline.
     """
     return transforms.Compose([
         transforms.Resize((img_size, img_size)),
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                             std=[0.229, 0.224, 0.225])
+        transforms.Normalize(
+            mean=[0.485, 0.456, 0.406],
+            std=[0.229, 0.224, 0.225]
+        )
     ])
 
 
@@ -72,18 +87,18 @@ def predict(
     transform: Compose,
     class_names: List[str]
 ) -> List[Dict[str, Any]]:
-    """
-    Run prediction on a list of images
+    """Run prediction on a list of images.
 
-    Arguments:
-        model: trained PyTorch model
-        device: torch device used
-        image_paths: list of image file paths
-        transform: transformation pipeline to apply
-        class_names: list of class labels
+    Args:
+        model (nn.Module): Trained PyTorch model.
+        device (TorchDevice): Torch device to use.
+        image_paths (List[str]): List of image file paths.
+        transform (Compose): Transformation pipeline to apply.
+        class_names (List[str]): List of class labels.
 
     Returns:
-        List of dictionaries containing predictions
+        List[Dict[str, Any]]: List of dictionaries containing predictions
+            with keys 'image', 'predicted_class', and 'confidence'.
     """
     results = []
 
@@ -111,18 +126,27 @@ def predict(
 
 
 def inference(config: Dict[str, Any]) -> None:
-    """
-    Run the full inference pipeline using config values
+    """Run the full inference pipeline using config values.
 
-    Arguments:
-        config: dictionary loaded from a YAML configuration file
+    This function:
+    1. Sets up the device and loads configuration
+    2. Loads the trained model
+    3. Processes all images in the input directory
+    4. Saves predictions to a CSV file
 
-    Outputs:
-        Saves a CSV file containing predictions
+    Args:
+        config (Dict[str, Any]): Dictionary loaded from a YAML configuration file.
+
+    Raises:
+        FileNotFoundError: If input_dir does not exist.
+        ValueError: If no images are found in input_dir.
     """
-    device = torch.device(config["general"]["device"] if torch.cuda.is_available() else "cpu")
+    device = torch.device(
+        config["general"]["device"] if torch.cuda.is_available() else "cpu"
+    )
     print(f"Using device: {device}")
 
+    # Load configuration values
     class_names = config["general"]["class_names"]
     model_path = config["test"]["model_path"]
     img_size = int(config["dataset"]["img_size"])
@@ -130,9 +154,11 @@ def inference(config: Dict[str, Any]) -> None:
     input_dir = config["test"]["input_dir"]
     model_type = config["test"]["model_type"]
     
+    # Validate input directory
     if not os.path.exists(input_dir):
         raise FileNotFoundError(f"Input directory not found: {input_dir}")
 
+    # Get list of image files
     image_paths = [
         os.path.join(input_dir, fname)
         for fname in os.listdir(input_dir)
@@ -142,13 +168,13 @@ def inference(config: Dict[str, Any]) -> None:
     if not image_paths:
         raise ValueError(f"No images found in directory: {input_dir}")
 
+    # Run inference
     model = load_model(model_path, model_type, len(class_names), device)
     transform = get_transforms(img_size)
     results = predict(model, device, image_paths, transform, class_names)
 
+    # Save results
     df = pd.DataFrame(results)
-
-    # Create output prediction file
     model_name = os.path.basename(model_path).split('.')[0]
     date_str = datetime.datetime.now().strftime("%Y%m%d")
     dynamic_filename = f"predictions_{model_name}_{date_str}.csv"
